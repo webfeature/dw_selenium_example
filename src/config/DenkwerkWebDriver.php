@@ -30,16 +30,48 @@ class DenkwerkWebDriver extends PHPUnit_Framework_TestCase {
      */
     protected function setUp()
     {
-        global $argv;
+        global $argv, $argc;
 
-        //$browser = $this->setBrowserByParam($argv);
-        $browser = Remote\WebDriverBrowserType::FIREFOX;
+        $browserParam = '';
+        $browserstackUser = '';
+        $browserstackKey = '';
+
+        $key = array_search('-b', $argv);
+        if ($key !== false) {
+            if (array_key_exists($key+1, $argv) === true) {
+                $browserParam = $this->setBrowser($argv[$key + 1]);
+            }
+        }
+
+        $browser = $this->setBrowser($browserParam);
+
+        $key = array_search('-u', $argv);
+        if ($key !== false) {
+            if (array_key_exists($key+1, $argv) === true) {
+                $browserstackUser = $argv[$key + 1];
+            }
+        }
+
+        $key = array_search('-k', $argv);
+        if ($key !== false) {
+            if (array_key_exists($key+1, $argv) === true) {
+                $browserstackKey = $argv[$key + 1];
+            }
+        }
 
         $capabilities = array(
+            Remote\WebDriverCapabilityType::PLATFORM => 'WINDOWS',
             Remote\WebDriverCapabilityType::BROWSER_NAME => $browser
         );
 
-        $this->webDriver = Remote\RemoteWebDriver::create('http://10.0.8.33:4444/wd/hub', $capabilities);
+        if (empty($browserstackUser) === true || empty($browserstackKey) === true) {
+            $this->webDriver = Remote\RemoteWebDriver::create('http://10.0.8.33:4444/wd/hub', $capabilities);
+        } else {
+            $this->webDriver = Remote\RemoteWebDriver::create(
+                'http://' . $browserstackUser . ':' . $browserstackKey . '@hub.browserstack.com/wd/hub',
+                $capabilities
+            );
+        }
 
         $this->webDriver->manage()->window()->maximize();
 
@@ -50,8 +82,8 @@ class DenkwerkWebDriver extends PHPUnit_Framework_TestCase {
      * Close browser
      */
     protected function tearDown() {
-        // with quit the test is failing https://github.com/Codeception/Codeception/issues/518
         $this->webDriver->close();
+        $this->webDriver->quit();
     }
 
     /**
@@ -118,27 +150,20 @@ class DenkwerkWebDriver extends PHPUnit_Framework_TestCase {
         }
     }
 
-    private function setBrowserByParam($argv) {
+    private function setBrowser($browserKey = '') {
 
-        // Default browser
-        $browser = Remote\WebDriverBrowserType::FIREFOX;
-
-        // Check if browser is set as param
-        if(isset($argv[2]) === true) {
-            switch ($argv[2]) {
-                case Remote\WebDriverBrowserType::IE:
-                    $browser = Remote\WebDriverBrowserType::IE;
-                    break;
-                case Remote\WebDriverBrowserType::CHROME:
-                    $browser = Remote\WebDriverBrowserType::CHROME;
-                    break;
-                case Remote\WebDriverBrowserType::SAFARI:
-                    $browser = Remote\WebDriverBrowserType::SAFARI;
-                    break;
-                default:
-                    echo 'Error: Parameter is not a browser';
-                    exit(1);
-            }
+        switch ($browserKey) {
+            case Remote\WebDriverBrowserType::IE:
+                $browser = Remote\WebDriverBrowserType::IE;
+                break;
+            case Remote\WebDriverBrowserType::CHROME:
+                $browser = Remote\WebDriverBrowserType::CHROME;
+                break;
+            case Remote\WebDriverBrowserType::SAFARI:
+                $browser = Remote\WebDriverBrowserType::SAFARI;
+                break;
+            default:
+                $browser = Remote\WebDriverBrowserType::FIREFOX;
         }
 
         return $browser;
