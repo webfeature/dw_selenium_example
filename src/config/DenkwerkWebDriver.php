@@ -17,12 +17,12 @@ class DenkwerkWebDriver extends PHPUnit_Framework_TestCase {
      *
      */
     public static function setUpBeforeClass() {
-        $files = glob('log/*');
+        /*$files = glob('log/*');
         foreach($files as $file) {
             if (is_file($file) === true) {
                 unlink($file);
             }
-        }
+        }*/
     }
 
     /**
@@ -32,7 +32,8 @@ class DenkwerkWebDriver extends PHPUnit_Framework_TestCase {
     {
         global $argv;
 
-        $browser = $this->setBrowserByParam($argv);
+        //$browser = $this->setBrowserByParam($argv);
+        $browser = Remote\WebDriverBrowserType::FIREFOX;
 
         $capabilities = array(
             Remote\WebDriverCapabilityType::BROWSER_NAME => $browser
