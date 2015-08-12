@@ -38,7 +38,7 @@ class DenkwerkWebDriver extends PHPUnit_Framework_TestCase {
             Remote\WebDriverCapabilityType::BROWSER_NAME => $browser
         );
 
-        $this->webDriver = Remote\RemoteWebDriver::create('http://localhost:4444/wd/hub', $capabilities);
+        $this->webDriver = Remote\RemoteWebDriver::create('http://10.0.8.33:4444/wd/hub', $capabilities);
 
         $this->webDriver->manage()->window()->maximize();
 
