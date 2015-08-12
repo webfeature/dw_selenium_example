@@ -3,72 +3,36 @@
 use \Facebook\WebDriver as WebDriver;
 use \Facebook\WebDriver\Remote as Remote;
 
+require_once 'AllowedParameters.php';
 require_once 'LocateElementStrategy.php';
 
 
 class DenkwerkWebDriver extends PHPUnit_Framework_TestCase {
 
-    /**
-     * @var Remote\RemoteWebDriver
-     */
     protected $webDriver;
-
-    /**
-     *
-     */
-    public static function setUpBeforeClass() {
-        /*$files = glob('log/*');
-        foreach($files as $file) {
-            if (is_file($file) === true) {
-                unlink($file);
-            }
-        }*/
-    }
+    protected $browser = '';
+    protected $browserstackUser = '';
+    protected $browserstackKey = '';
 
     /**
      * Setting up browser and load website
      */
     protected function setUp()
     {
-        global $argv, $argc;
+        $this->getParams();
 
-        $browserParam = '';
-        $browserstackUser = '';
-        $browserstackKey = '';
-
-        $key = array_search('-b', $argv);
-        if ($key !== false) {
-            if (array_key_exists($key+1, $argv) === true) {
-                $browserParam = $this->setBrowser($argv[$key + 1]);
-            }
-        }
-
-        $browser = $this->setBrowser($browserParam);
-
-        $key = array_search('-u', $argv);
-        if ($key !== false) {
-            if (array_key_exists($key+1, $argv) === true) {
-                $browserstackUser = $argv[$key + 1];
-            }
-        }
-
-        $key = array_search('-k', $argv);
-        if ($key !== false) {
-            if (array_key_exists($key+1, $argv) === true) {
-                $browserstackKey = $argv[$key + 1];
-            }
-        }
+        $this->browser = $this->setBrowser($this->browser);
 
         $capabilities = array(
             Remote\WebDriverCapabilityType::PLATFORM => 'WINDOWS',
-            Remote\WebDriverCapabilityType::BROWSER_NAME => $browser
+            Remote\WebDriverCapabilityType::BROWSER_NAME => $this->browser
         );
 
-        if (empty($browserstackUser) === true || empty($browserstackKey) === true) {
+        if (empty($this->browserstackUser) === true || empty($this->browserstackKey) === true) {
             $this->webDriver = Remote\RemoteWebDriver::create('http://10.0.8.33:4444/wd/hub', $capabilities);
         } else {
             $this->webDriver = Remote\RemoteWebDriver::create(
-                'http://' . $browserstackUser . ':' . $browserstackKey . '@hub.browserstack.com/wd/hub',
+                'http://' . $this->browserstackUser . ':' . $this->browserstackKey . '@hub.browserstack.com/wd/hub',
                 $capabilities
             );
         }
@@ -167,5 +131,42 @@ class DenkwerkWebDriver extends PHPUnit_Framework_TestCase {
         }
 
         return $browser;
+    }
+
+    /**
+     * Get all allowed params
+     * -b browser
+     * -k browserstack key
+     * -u browserstack user
+     */
+    private function getParams() {
+        // get browser param
+        $this->getParamIntoVariable(AllowedParameters::PARAM_BROWSER, $this->browser);
+
+        // get browserstack user param
+        $this->getParamIntoVariable(AllowedParameters::PARAM_BROWSERSTACK_USER, $this->browserstackUser);
+
+        // get browserstack key param
+        $this->getParamIntoVariable(AllowedParameters::PARAM_BROWSERSTACK_KEY, $this->browserstackKey);
+    }
+
+    /**
+     * Check for certain parameter passed into $argv and save into certain variable
+     *
+     * @param $param
+     * @param $intoVariable
+     */
+    private function getParamIntoVariable($param, &$intoVariable) {
+        global $argv;
+
+        $key = array_search($param, $argv);
+        if ($key !== false) {
+            if (array_key_exists($key + 1, $argv) === true && substr($argv[$key + 1], 0, 1) !== '-') {
+                $intoVariable = $argv[$key + 1];
+            } else {
+                echo 'Error: Value of parameter ' . $param . ' is not valid.';
+                exit(1);
+            }
+        }
     }
 }

@@ -23,3 +23,13 @@ Start selenium server
 Execute test
 
     vendor/bin/phpunit src/
+
+## Parameters
+
+    vendor/bin/phpunit [phpUnitOptions] src/ [testingOptions]
+
+Testing options
+
+    -b browser
+    -u browserstack user
+    -k browserstack key
